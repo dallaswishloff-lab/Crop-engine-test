@@ -1,6 +1,6 @@
 {
-  "name": "Tiny Crop Test",
-  "short_name": "CropTest",
+  "name": "Wishloff Crop Engine V2",
+  "short_name": "CropEngineV2",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f4f4f4",
