@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiny Crop Test</title>
+<link rel="manifest" href="manifest.json">
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;background:#f4f4f4;margin:0;padding:20px;color:#111}
+.box{background:white;border:1px solid #ccc;border-radius:14px;padding:16px;max-width:500px;margin:auto}
+h1{font-size:24px;margin-top:0}
+label{display:block;font-weight:700;margin-top:14px}
+select,input,button{width:100%;font-size:20px;padding:12px;margin-top:6px;border-radius:10px;box-sizing:border-box}
+button{background:#111;color:white;font-weight:800;border:0;margin-top:18px}
+#result{font-size:24px;font-weight:900;background:#e7f4e8;border:1px solid #85b98b;border-radius:12px;padding:14px;margin-top:18px}
+.small{font-size:14px;color:#555;margin-top:12px;line-height:1.35}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>Tiny Crop Test</h1>
+<label>Crop</label>
+<select id="crop">
+<option value="canola">Canola</option>
+<option value="wheat">Wheat</option>
+<option value="barley">Barley</option>
+</select>
+
+<label>Soil N number</label>
+<input id="n" type="number" value="25">
+
+<button onclick="calculate()">Calculate</button>
+
+<div id="result">Result will show here</div>
+<div class="small">If this result changes after pressing Calculate, the app is working on your phone.</div>
+</div>
+
+<script>
+function calculate(){
+  var crop = document.getElementById('crop').value;
+  var n = Number(document.getElementById('n').value || 0);
+  var target = crop === 'canola' ? 165 : crop === 'wheat' ? 176 : 160;
+  var needed = Math.max(0, target - n);
+  document.getElementById('result').innerHTML = crop.toUpperCase() + ': Need ' + needed.toFixed(0) + ' lb actual N/ac';
+}
+</script>
+</body>
+</html>
