@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wishloff Crop Engine V2</title>
+<title>Wishloff Crop Engine V3</title>
 <link rel="manifest" href="manifest.json">
 <style>
 *{box-sizing:border-box}
@@ -11,7 +11,7 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;back
 header{background:#111;color:white;padding:14px;position:sticky;top:0;z-index:2}
 h1{font-size:21px;margin:0}
 h2{font-size:19px;margin:0 0 10px}
-main{max-width:760px;margin:auto;padding:12px 12px 110px}
+main{max-width:780px;margin:auto;padding:12px 12px 115px}
 .card{background:white;border:1px solid #ccc;border-radius:14px;padding:14px;margin:12px 0}
 label{display:block;font-weight:800;font-size:14px;margin:12px 0 5px}
 input,select,button{width:100%;font-size:18px;min-height:48px;border-radius:11px}
@@ -21,454 +21,208 @@ button{border:0;background:#111;color:white;font-weight:900;padding:12px;margin-
 .good{background:#e7f4e8;border:1px solid #8cbd91}
 .warn{background:#fff0bf;border:1px solid #c7a43d}
 .bad{background:#ffe0dc;border:1px solid #c98379}
+.info{background:#e8f0ff;border:1px solid #8aa5db}
 .row2{display:grid;grid-template-columns:1fr;gap:0}
 @media(min-width:650px){.row2{grid-template-columns:1fr 1fr;gap:10px}}
 table{width:100%;border-collapse:collapse;font-size:15px}
-td,th{border-bottom:1px solid #ddd;padding:8px 4px;text-align:left}
+td,th{border-bottom:1px solid #ddd;padding:8px 4px;text-align:left;vertical-align:top}
 .big{font-size:24px;font-weight:900}
 .small{font-size:13px;color:#555;line-height:1.35}
 pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:13px;line-height:1.35}
 .bottom{position:fixed;left:0;right:0;bottom:0;background:white;border-top:1px solid #ccc;padding:10px;z-index:3}
-.bottom div{max-width:760px;margin:auto}
+.bottom div{max-width:780px;margin:auto}
 .bottom button{margin:0}
-.nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
+.nav{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:10px}
 .nav a{background:#333;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:8px;font-size:13px;font-weight:800}
+.meter{height:18px;border-radius:999px;background:#ddd;overflow:hidden;margin-top:8px}.meter div{height:100%;background:#111;width:50%}
 </style>
 </head>
 <body>
 <header>
-<h1>Wishloff Crop Engine V2</h1>
-<div style="font-size:12px;color:#ddd">Canola-first farmer-profit engine</div>
-<div class="nav">
-<a href="#setup">Setup</a>
-<a href="#soil">Soil</a>
-<a href="#result">Results</a>
-</div>
+<h1>Wishloff Crop Engine V3</h1>
+<div style="font-size:12px;color:#ddd">Canola: confidence, water score, P strategy, stand estimate</div>
+<div class="nav"><a href="#setup">Setup</a><a href="#soil">Soil</a><a href="#standsec">Stand</a><a href="#result">Results</a></div>
 </header>
 
 <main>
 <section id="setup" class="card">
 <h2>1. Field + Crop</h2>
-<label>Crop</label>
-<select id="crop">
-<option value="canola">Canola</option>
-</select>
-
-<label>Field name</label>
-<input id="fieldName" placeholder="Example: Beaus">
-
+<label>Crop</label><select id="crop"><option value="canola">Canola</option></select>
+<label>Field name</label><input id="fieldName" placeholder="Example: Beaus">
 <div class="row2">
-<div>
-<label>Acres</label>
-<input id="acres" type="number" placeholder="Example: 225">
+<div><label>Acres</label><input id="acres" type="number" placeholder="Example: 225"></div>
+<div><label>Target yield bu/ac</label><input id="targetYield" type="number" value="60"></div>
 </div>
-<div>
-<label>Target yield bu/ac</label>
-<input id="targetYield" type="number" value="60">
+<div class="row2">
+<div><label>Canola price $/bu</label><input id="cropPrice" type="number" step="0.01" placeholder="Example: 13.20"></div>
+<div><label>11-52-0 price $/MT</label><input id="mapPrice" type="number" step="1" placeholder="Example: 1315"></div>
 </div>
-</div>
-
-<label>Canola price $/bu, optional</label>
-<input id="cropPrice" type="number" step="0.01" placeholder="Example: 13.20">
-
-<label>Decision mode</label>
-<select id="mode">
-<option value="balanced">Balanced return</option>
-<option value="conservative">Conservative cash protection</option>
-<option value="push">Yield push</option>
-</select>
-
-<div class="notice good">V2 starts with canola only so we can make one crop actually good before expanding.</div>
+<label>Risk posture</label>
+<select id="mode"><option value="balanced">Balanced return</option><option value="conservative">Conservative cash protection</option><option value="push">Yield push</option></select>
+<label>Land tenure</label>
+<select id="tenure"><option value="owned">Owned</option><option value="longrent">Long-term rented</option><option value="shortrent">Short-term rented</option><option value="cropshare">Crop-share</option></select>
 </section>
 
 <section id="soil" class="card">
 <h2>2. Soil Test Values</h2>
-
-<label>Nitrate-N value</label>
-<input id="soilN" type="number" step="0.1" placeholder="Enter actual lab value">
-<label>N units</label>
-<select id="soilNUnit">
-<option value="lbac">lb/ac</option>
-<option value="ppm">ppm</option>
-<option value="kgha">kg/ha</option>
-<option value="mgkg">mg/kg</option>
-</select>
-<label>N sample depth</label>
-<select id="soilNDepth">
-<option value="6">0-6 inch</option>
-<option value="12">0-12 inch</option>
-<option value="24" selected>0-24 inch</option>
-<option value="36">0-36 inch</option>
-</select>
-
-<label>Phosphorus value</label>
-<input id="soilP" type="number" step="0.1" placeholder="Enter actual lab value">
-<label>P type / units</label>
-<select id="soilPUnit">
-<option value="ppm">Olsen/Bicarb P ppm</option>
-<option value="prs">PRS P supply rate</option>
-<option value="lbP2O5">Available P2O5 lb/ac</option>
-<option value="kghaP2O5">P2O5 kg/ha</option>
-</select>
-<label>P sample depth</label>
-<select id="soilPDepth">
-<option value="6" selected>0-6 inch</option>
-<option value="12">0-12 inch</option>
-<option value="24">0-24 inch</option>
-</select>
-
-<label>Sulfate-S value</label>
-<input id="soilS" type="number" step="0.1" placeholder="Enter actual lab value">
-<label>S units</label>
-<select id="soilSUnit">
-<option value="lbac">lb/ac</option>
-<option value="ppm">ppm</option>
-<option value="kgha">kg/ha</option>
-<option value="mgkg">mg/kg</option>
-</select>
-<label>S sample depth</label>
-<select id="soilSDepth">
-<option value="6">0-6 inch</option>
-<option value="12">0-12 inch</option>
-<option value="24" selected>0-24 inch</option>
-<option value="36">0-36 inch</option>
-</select>
-
-<label>pH, optional</label>
-<input id="ph" type="number" step="0.1" placeholder="Optional">
-<label>EC / salinity dS/m, optional</label>
-<input id="ec" type="number" step="0.1" placeholder="Optional">
+<label>Nitrate-N value</label><input id="soilN" type="number" step="0.1" placeholder="Enter lab value">
+<label>N units</label><select id="soilNUnit"><option value="lbac">lb/ac</option><option value="ppm">ppm</option><option value="kgha">kg/ha</option><option value="mgkg">mg/kg</option></select>
+<label>N sample depth</label><select id="soilNDepth"><option value="6">0-6 inch</option><option value="12">0-12 inch</option><option value="24" selected>0-24 inch</option><option value="36">0-36 inch</option></select>
+<label>Phosphorus value</label><input id="soilP" type="number" step="0.1" placeholder="Enter lab value">
+<label>P test type / units</label><select id="soilPUnit"><option value="olsen">Olsen / Bicarb P ppm</option><option value="bray1">Bray P1 ppm</option><option value="bray2">Bray P2 ppm</option><option value="prs">Western Ag PRS P supply rate</option><option value="lbP2O5">Available P2O5 lb/ac</option><option value="kghaP2O5">P2O5 kg/ha</option></select>
+<label>P sample depth</label><select id="soilPDepth"><option value="6" selected>0-6 inch</option><option value="12">0-12 inch</option><option value="24">0-24 inch</option></select>
+<label>Sulfate-S value</label><input id="soilS" type="number" step="0.1" placeholder="Enter lab value">
+<label>S units</label><select id="soilSUnit"><option value="lbac">lb/ac</option><option value="ppm">ppm</option><option value="kgha">kg/ha</option><option value="mgkg">mg/kg</option></select>
+<label>S sample depth</label><select id="soilSDepth"><option value="6">0-6 inch</option><option value="12">0-12 inch</option><option value="24" selected>0-24 inch</option><option value="36">0-36 inch</option></select>
+<label>pH</label><input id="ph" type="number" step="0.1" placeholder="Strongly recommended for P">
+<label>EC / salinity dS/m</label><input id="ec" type="number" step="0.1" placeholder="Optional">
 </section>
 
 <section class="card">
-<h2>3. Field Character</h2>
-
-<label>Organic matter %</label>
-<input id="om" type="number" step="0.1" placeholder="Example: 4.5">
-
+<h2>3. Field Character + Water</h2>
+<label>Organic matter %</label><input id="om" type="number" step="0.1" placeholder="Example: 4.5">
 <label>Soil type</label>
-<select id="soilType">
-<option value="loam">Loam</option>
-<option value="sandy">Sandy</option>
-<option value="sandy_loam">Sandy loam</option>
-<option value="black_loam" selected>Black loam</option>
-<option value="clay_loam">Clay loam</option>
-<option value="heavy_clay">Heavy clay</option>
-<option value="peat">Peat / high OM</option>
-</select>
+<select id="soilType"><option value="sandy">Sandy</option><option value="sandy_loam">Sandy loam</option><option value="loam">Loam</option><option value="black_loam" selected>Black loam</option><option value="clay_loam">Clay loam</option><option value="heavy_clay">Heavy clay</option><option value="peat">Peat / high OM</option></select>
+<label>Water-holding environment</label>
+<select id="waterHolding"><option value="low">Low</option><option value="moderate">Moderate</option><option value="good" selected>Good</option><option value="excellent">Excellent</option><option value="variable">Variable</option></select>
+<label>Field variability</label>
+<select id="variability"><option value="low">Low / fairly uniform</option><option value="medium" selected>Medium</option><option value="high">High / very variable</option></select>
+<label>Drainage / moisture tendency</label>
+<select id="drainage"><option value="normal" selected>Normal</option><option value="dry">Dries out fast</option><option value="wet">Wet / waterlogging risk</option><option value="saline">Saline risk</option></select>
+</section>
 
-<label>Landscape type</label>
-<select id="landscape">
-<option value="mixed" selected>Mixed field</option>
-<option value="hilltop">Mostly hilltop/knolls</option>
-<option value="midslope">Mostly mid-slope</option>
-<option value="lowground">Mostly low ground</option>
-</select>
-
-<label>Drainage/moisture tendency</label>
-<select id="drainage">
-<option value="normal" selected>Normal</option>
-<option value="dry">Dries out fast</option>
-<option value="wet">Wet / waterlogging risk</option>
-<option value="saline">Saline risk</option>
-</select>
+<section id="standsec" class="card">
+<h2>4. Pre-Seed Stand Estimate</h2>
+<div class="notice info">Before seeding, estimated stand is based on seed rate, seed size/TKW, survival, row spacing, and depth. After emergence, enter actual plants/ft² to override.</div>
+<label>Seed rate, lb/ac</label><input id="seedRate" type="number" step="0.1" placeholder="Example: 5.0">
+<label>Thousand kernel weight / TKW, grams</label><input id="tkw" type="number" step="0.1" placeholder="Example: 4.5">
+<label>Expected survival %</label><input id="survival" type="number" step="1" value="60">
+<label>Row spacing, inches</label><input id="rowSpacing" type="number" step="0.5" value="12">
+<label>Seeding depth, inches</label><input id="seedDepth" type="number" step="0.1" placeholder="Example: 0.75">
+<label>Actual plant count plants/ft², optional after emergence</label><input id="actualStand" type="number" step="0.1" placeholder="Leave blank before emergence">
 </section>
 
 <section class="card">
-<h2>4. Already Applied / Credits</h2>
-<label>Actual N already applied lb/ac</label>
-<input id="appliedN" type="number" step="0.1" placeholder="0 if none">
-<label>N credits lb/ac, manure/legume/etc.</label>
-<input id="creditN" type="number" step="0.1" placeholder="0 if none">
-<label>P2O5 already applied lb/ac</label>
-<input id="appliedP" type="number" step="0.1" placeholder="0 if none">
-<label>S already applied lb/ac</label>
-<input id="appliedS" type="number" step="0.1" placeholder="0 if none">
+<h2>5. Already Applied / Placement</h2>
+<label>Actual N already applied lb/ac</label><input id="appliedN" type="number" step="0.1" placeholder="0 if none">
+<label>N credits lb/ac, manure/legume/etc.</label><input id="creditN" type="number" step="0.1" placeholder="0 if none">
+<label>P2O5 already applied lb/ac</label><input id="appliedP" type="number" step="0.1" placeholder="0 if none">
+<label>S already applied lb/ac</label><input id="appliedS" type="number" step="0.1" placeholder="0 if none">
+<label>P source</label><select id="pSource"><option value="map" selected>11-52-0 MAP</option><option value="s15">S15</option><option value="liquid">Liquid phosphate</option><option value="other">Other</option></select>
+<label>P placement</label><select id="pPlacement"><option value="sideband" selected>Drill side-band</option><option value="seedrow">Seed-row</option><option value="midrow">Mid-row band</option><option value="broadcast">Broadcast</option></select>
 </section>
 
 <section class="card">
-<h2>5. Rainfall + Heat</h2>
-<label>Weather mode</label>
-<select id="weatherMode">
-<option value="blend">Blend manual + 10-year historic</option>
-<option value="manual">Manual only</option>
-<option value="historic">10-year historic only</option>
-</select>
-
-<label>Current/available moisture</label>
-<select id="moisture">
-<option value="0.70">Very dry</option>
-<option value="0.85">Below average</option>
-<option value="1.00" selected>Average</option>
-<option value="1.10">Good</option>
-<option value="1.20">Excellent</option>
-</select>
-
-<label>10-year historic moisture trend</label>
-<select id="historic">
-<option value="0.90">Drier than normal</option>
-<option value="1.00" selected>Normal</option>
-<option value="1.08">Wetter than normal</option>
-</select>
-
-<label>Heat stress risk during key stage</label>
-<select id="heat">
-<option value="1.00" selected>Low</option>
-<option value="0.95">Medium</option>
-<option value="0.88">High</option>
-<option value="0.80">Extreme</option>
-</select>
-
-<label>Seeding date</label>
-<input id="seedingDate" type="date">
-
-<label>Manual stage check</label>
-<select id="manualStage">
-<option value="">No manual check</option>
-<option value="early">Early vegetative</option>
-<option value="rapid">Rapid growth / bolting</option>
-<option value="flowering">Flowering</option>
-<option value="podfill">Pod fill</option>
-<option value="mature">Maturity</option>
-</select>
+<h2>6. Rainfall + Heat</h2>
+<label>Weather mode</label><select id="weatherMode"><option value="blend">Blend current + historic</option><option value="manual">Current only</option><option value="historic">Historic only</option></select>
+<label>Current/available moisture</label><select id="moisture"><option value="0.70">Very dry</option><option value="0.85">Below average</option><option value="1.00" selected>Average</option><option value="1.10">Good</option><option value="1.20">Excellent</option></select>
+<label>10-year historic moisture trend</label><select id="historic"><option value="0.90">Drier than normal</option><option value="1.00" selected>Normal</option><option value="1.08">Wetter than normal</option></select>
+<label>Season timing</label><select id="seasonTiming"><option value="preseed" selected>Pre-seed</option><option value="early">Early season</option><option value="mid">Mid season</option><option value="late">Late season</option></select>
+<label>Heat stress risk during key stage</label><select id="heat"><option value="1.00" selected>Low</option><option value="0.95">Medium</option><option value="0.88">High</option><option value="0.80">Extreme</option></select>
+<label>Seeding date</label><input id="seedingDate" type="date">
+<label>Manual stage check</label><select id="manualStage"><option value="">No manual check</option><option value="early">Early vegetative</option><option value="rapid">Rapid growth / bolting</option><option value="flowering">Flowering</option><option value="podfill">Pod fill</option><option value="mature">Maturity</option></select>
 </section>
 
 <section id="result" class="card">
-<h2>6. Results</h2>
+<h2>7. Results</h2>
 <div id="summary" class="notice warn">Enter numbers, then hit Calculate.</div>
 <button type="button" onclick="calculate()">Calculate Now</button>
 </section>
 
-<section class="card">
-<h2>Justification</h2>
-<div id="why"></div>
-</section>
-
-<section class="card">
-<h2>Alerts</h2>
-<div id="alerts"></div>
-</section>
-
-<section class="card">
-<h2>Audit Trail</h2>
-<pre id="audit"></pre>
-</section>
+<section class="card"><h2>Confidence</h2><div id="confidence"></div></section>
+<section class="card"><h2>Justification</h2><div id="why"></div></section>
+<section class="card"><h2>Alerts</h2><div id="alerts"></div></section>
+<section class="card"><h2>Audit Trail</h2><pre id="audit"></pre></section>
 </main>
 
-<div class="bottom">
-<div><button type="button" onclick="calculate()">Calculate</button></div>
-</div>
+<div class="bottom"><div><button type="button" onclick="calculate()">Calculate</button></div></div>
 
 <script>
-const N_PER_BU = 2.8;      // farmer-first canola starting baseline
-const P_PER_BU = 0.75;     // P2O5 planning baseline
-const S_PER_BU = 0.36;     // actual S planning baseline
-const PPM_TO_LBAC_PER_6IN = 2.0;
-
-function id(x){return document.getElementById(x)}
-function num(x){const v=parseFloat(id(x).value); return isNaN(v)?0:v}
-
-function convertBasic(v,u,depth){
-  if(u==="lbac") return v;
-  if(u==="kgha") return v*0.892;
-  if(u==="ppm" || u==="mgkg") return v*(PPM_TO_LBAC_PER_6IN*(depth/6));
-  return v;
-}
-function convertP(v,u,depth){
-  if(u==="lbP2O5") return v;
-  if(u==="kghaP2O5") return v*0.892;
-  if(u==="ppm") return v*(PPM_TO_LBAC_PER_6IN*(depth/6));
-  if(u==="prs") return v; // placeholder: PRS interpretation must be calibrated later
-  return v;
-}
-function weatherFactor(){
-  const m=parseFloat(id("moisture").value);
-  const h=parseFloat(id("heat").value);
-  const hist=parseFloat(id("historic").value);
-  const mode=id("weatherMode").value;
-  if(mode==="manual") return m*h;
-  if(mode==="historic") return hist*h;
-  return ((m+hist)/2)*h;
-}
-function modeFactor(){
-  const m=id("mode").value;
-  if(m==="conservative") return 0.92;
-  if(m==="push") return 1.06;
-  return 1.00;
-}
-function mineralizationCredit(){
-  const om=num("om");
-  const soil=id("soilType").value;
-  if(!om) return 0;
-  let credit = om * 3.0; // starting credit; calibrated later
-  if(soil==="sandy" || soil==="sandy_loam") credit *= 0.75;
-  if(soil==="black_loam") credit *= 1.10;
-  if(soil==="clay_loam" || soil==="heavy_clay") credit *= 1.05;
-  if(soil==="peat") credit *= 1.25;
-  return Math.min(30, Math.max(0, credit));
-}
-function soilNAvailabilityFactor(){
-  const m=parseFloat(id("moisture").value);
-  const soil=id("soilType").value;
-  const drainage=id("drainage").value;
-  let f=0.95;
-
-  if(m<=0.70) f=0.78;
-  else if(m<=0.85) f=0.86;
-  else if(m>=1.20) f=0.92;
-  else if(m>=1.10) f=0.98;
-
-  if(soil==="sandy" || soil==="sandy_loam") f-=0.04;
-  if(drainage==="wet") f-=0.05;
-  if(drainage==="saline") f-=0.07;
-  if(drainage==="dry") f-=0.03;
-
-  return Math.max(0.70, Math.min(1.00, f));
-}
-function pResponseFactor(){
-  const soil=id("soilType").value;
-  const ph=num("ph");
-  let f=1.0;
-  if(soil==="black_loam") f=0.95;
-  if(soil==="sandy" || soil==="sandy_loam") f=1.08;
-  if(ph>7.8) f+=0.08;
-  if(ph && ph<5.8) f+=0.05;
-  return f;
-}
-function sRiskFactor(){
-  const soil=id("soilType").value;
-  const drainage=id("drainage").value;
-  let f=1.0;
-  if(soil==="sandy" || soil==="sandy_loam") f+=0.10;
-  if(drainage==="wet") f+=0.08;
-  if(drainage==="dry") f-=0.04;
-  return f;
-}
-function stageText(){
-  const d=id("seedingDate").value, man=id("manualStage").value;
-  if(man) return "Manual stage: "+man;
-  if(!d) return "No seeding date entered.";
-  const days=Math.floor((new Date()-new Date(d))/(1000*60*60*24));
-  let txt="";
-  if(days<10) txt="emergence";
-  else if(days<25) txt="2-6 leaf";
-  else if(days<40) txt="bolting / rapid growth";
-  else if(days<60) txt="flowering";
-  else if(days<85) txt="pod fill";
-  else txt="maturity";
-  return "Estimated "+txt+" ("+days+" days after seeding).";
-}
-function econAdjustment(nNeed){
-  const price=num("cropPrice");
-  const wf=weatherFactor();
-  let adj=0;
-  if(!price) return {adj:0,reason:"No crop price entered, so economic adjustment was not applied."};
-  if(price<11.50) adj -= Math.min(15, nNeed*0.08);
-  if(price>14.00 && wf>=0.95) adj += Math.min(10, nNeed*0.05);
-  if(wf<0.85) adj -= Math.min(18, nNeed*0.10);
-  return {adj:adj,reason:"Economic/weather adjustment based on canola price and weather factor."};
-}
+const N_PER_BU=2.8, P_PER_BU=0.75, S_PER_BU=0.36, PPM_TO_LBAC_PER_6IN=2.0;
+function id(x){return document.getElementById(x)} function num(x){const v=parseFloat(id(x).value);return isNaN(v)?0:v}
+function convertBasic(v,u,d){if(u==="lbac")return v;if(u==="kgha")return v*0.892;if(u==="ppm"||u==="mgkg")return v*(PPM_TO_LBAC_PER_6IN*(d/6));return v}
+function convertP(v,u,d){if(u==="lbP2O5")return v;if(u==="kghaP2O5")return v*0.892;if(u==="olsen")return v*(PPM_TO_LBAC_PER_6IN*(d/6));if(u==="bray1")return v*(PPM_TO_LBAC_PER_6IN*(d/6))*0.95;if(u==="bray2")return v*(PPM_TO_LBAC_PER_6IN*(d/6))*1.05;if(u==="prs")return v;return v}
+function weatherFactor(){const m=parseFloat(id("moisture").value),h=parseFloat(id("heat").value),hist=parseFloat(id("historic").value),mode=id("weatherMode").value,t=id("seasonTiming").value;let cw=0.7,hw=0.3;if(t==="preseed"){cw=0.5;hw=0.5}else if(t==="early"){cw=0.6;hw=0.4}else if(t==="mid"){cw=0.7;hw=0.3}else if(t==="late"){cw=0.85;hw=0.15}if(mode==="manual")return m*h;if(mode==="historic")return hist*h;return ((m*cw)+(hist*hw))*h}
+function modeFactor(){const m=id("mode").value;if(m==="conservative")return 0.92;if(m==="push")return 1.06;return 1}
+function mineralizationCredit(){const om=num("om"),soil=id("soilType").value;if(!om)return 0;let c=om*3.0;if(soil==="sandy"||soil==="sandy_loam")c*=0.75;if(soil==="black_loam")c*=1.10;if(soil==="clay_loam"||soil==="heavy_clay")c*=1.05;if(soil==="peat")c*=1.25;return Math.min(30,Math.max(0,c))}
+function soilNAvailabilityFactor(){const m=parseFloat(id("moisture").value),soil=id("soilType").value,dr=id("drainage").value;let f=0.95;if(m<=0.70)f=0.78;else if(m<=0.85)f=0.86;else if(m>=1.20)f=0.92;else if(m>=1.10)f=0.98;if(soil==="sandy"||soil==="sandy_loam")f-=0.04;if(dr==="wet")f-=0.05;if(dr==="saline")f-=0.07;if(dr==="dry")f-=0.03;return Math.max(0.70,Math.min(1.00,f))}
+function waterScore(){let score=50;const wh=id("waterHolding").value,dr=id("drainage").value,soil=id("soilType").value,m=parseFloat(id("moisture").value);if(wh==="low")score-=20;if(wh==="moderate")score-=5;if(wh==="good")score+=10;if(wh==="excellent")score+=20;if(wh==="variable")score-=5;if(soil==="black_loam"||soil==="clay_loam")score+=8;if(soil==="sandy"||soil==="sandy_loam")score-=10;if(dr==="dry")score-=12;if(dr==="wet")score-=5;if(dr==="saline")score-=18;score+=(m-1)*50;return Math.max(0,Math.min(100,score))}
+function standEstimate(){const actual=num("actualStand");if(actual>0)return {stand:actual,source:"actual plant count"};const rate=num("seedRate"),tkw=num("tkw"),surv=num("survival")||60;if(!rate||!tkw)return {stand:0,source:"not enough seed data"};const seedsPerLb=453592.37/tkw;const seedsFt2=(rate*seedsPerLb)/43560;let plants=seedsFt2*(surv/100);const depth=num("seedDepth");if(depth>1)plants*=0.95;if(depth>1.5)plants*=0.88;return {stand:plants,source:"pre-seed estimate"}}
+function standClass(s){if(!s)return "unknown";if(s<3)return "poor";if(s<5)return "acceptable";if(s<8)return "strong";return "very strong"}
+function pResponseFactor(){const soil=id("soilType").value,ph=num("ph"),place=id("pPlacement").value;let f=1;if(soil==="sandy"||soil==="sandy_loam")f+=0.08;if(ph>7.8)f+=0.08;if(ph&&ph<5.8)f+=0.05;if(place==="sideband")f-=0.04;if(place==="seedrow")f-=0.02;if(place==="broadcast")f+=0.08;return f}
+function sRiskFactor(){const soil=id("soilType").value,dr=id("drainage").value;let f=1;if(soil==="sandy"||soil==="sandy_loam")f+=0.10;if(dr==="wet")f+=0.08;if(dr==="dry")f-=0.04;return f}
+function stageText(){const d=id("seedingDate").value,man=id("manualStage").value;if(man)return "Manual stage: "+man;if(!d)return "No seeding date entered.";const days=Math.floor((new Date()-new Date(d))/(1000*60*60*24));let txt="";if(days<10)txt="emergence";else if(days<25)txt="2-6 leaf";else if(days<40)txt="bolting / rapid growth";else if(days<60)txt="flowering";else if(days<85)txt="pod fill";else txt="maturity";return "Estimated "+txt+" ("+days+" days after seeding)."}
+function econAdjustment(nNeed){const price=num("cropPrice"),wf=weatherFactor();let adj=0;if(!price)return {adj:0,reason:"No crop price entered, so economic adjustment was not applied."};if(price<11.50)adj-=Math.min(15,nNeed*0.08);if(price>14.00&&wf>=0.95)adj+=Math.min(10,nNeed*0.05);if(wf<0.85)adj-=Math.min(18,nNeed*0.10);return {adj,reason:"Economic/weather adjustment based on canola price and weather factor."}}
+function confidenceScore(soilNMeasured, soilP, soilS, standObj){let score=100;let notes=[];if(!num("soilN")){score-=20;notes.push("missing N test")}if(!num("soilP")){score-=18;notes.push("missing P test")}if(!num("soilS")){score-=18;notes.push("missing S test")}if(parseFloat(id("soilNDepth").value)<24){score-=12;notes.push("N depth under 24 inches")}if(!num("om")){score-=10;notes.push("missing OM")}if(!num("ph")){score-=8;notes.push("missing pH for P interpretation")}if(id("variability").value==="high"){score-=12;notes.push("high field variability")}if(id("waterHolding").value==="variable"){score-=8;notes.push("variable water environment")}if(id("soilPUnit").value==="prs"){score-=8;notes.push("PRS P needs calibration")}if((id("soilPUnit").value==="bray1"||id("soilPUnit").value==="bray2")&&num("ph")>7.3){score-=10;notes.push("Bray P less reliable on high pH/calcareous soils")}if(standObj.stand&&standObj.stand<3){score-=12;notes.push("poor stand")}return {score:Math.max(0,Math.min(100,score)),notes}}
 function calculate(){
-  const y=num("targetYield");
-  const acres=num("acres");
-  const field=id("fieldName").value || "Unnamed field";
-  const wf=weatherFactor();
-  const mf=modeFactor();
-
-  const soilNMeasured=convertBasic(num("soilN"),id("soilNUnit").value,parseFloat(id("soilNDepth").value));
-  const soilP=convertP(num("soilP"),id("soilPUnit").value,parseFloat(id("soilPDepth").value));
-  const soilS=convertBasic(num("soilS"),id("soilSUnit").value,parseFloat(id("soilSDepth").value));
-
-  const nAvailFactor=soilNAvailabilityFactor();
-  const usableSoilN=soilNMeasured*nAvailFactor;
-  const minN=mineralizationCredit();
-
-  const baseNDemand=y*N_PER_BU;
-  const weatherNDemand=baseNDemand*wf*mf;
-  const remainingNBeforeEcon=Math.max(0, weatherNDemand-usableSoilN-minN-num("appliedN")-num("creditN"));
-  const econ=econAdjustment(remainingNBeforeEcon);
-  const finalN=Math.max(0, remainingNBeforeEcon+econ.adj);
-
-  const basePDemand=y*P_PER_BU*pResponseFactor()*mf;
-  const finalP=Math.max(0, basePDemand-soilP-num("appliedP"));
-
-  const baseSDemand=y*S_PER_BU*sRiskFactor()*mf;
-  const finalS=Math.max(0, baseSDemand-soilS-num("appliedS"));
-
-  id("summary").innerHTML =
-  '<div class="big">'+field+' — CANOLA</div>'+
-  '<div class="notice good">'+stageText()+'</div>'+
-  '<table><tr><th>Nutrient</th><th>Actual lb/ac</th><th>Total actual lb</th></tr>'+
-  '<tr><td>N</td><td>'+finalN.toFixed(0)+'</td><td>'+(finalN*acres).toFixed(0)+'</td></tr>'+
-  '<tr><td>P2O5</td><td>'+finalP.toFixed(0)+'</td><td>'+(finalP*acres).toFixed(0)+'</td></tr>'+
-  '<tr><td>S</td><td>'+finalS.toFixed(0)+'</td><td>'+(finalS*acres).toFixed(0)+'</td></tr></table>';
-
-  id("why").innerHTML =
-  '<div class="notice good"><b>N:</b> Base canola demand used '+N_PER_BU+' lb N/bu. Soil nitrate was '+soilNMeasured.toFixed(1)+' lb/ac, but usable soil N was adjusted to '+usableSoilN.toFixed(1)+' lb/ac based on moisture, soil type, and drainage.</div>'+
-  '<div class="notice good"><b>Organic matter:</b> Estimated mineralization credit = '+minN.toFixed(1)+' lb N/ac.</div>'+
-  '<div class="notice good"><b>P:</b> P2O5 recommendation adjusted for soil type/pH response risk, then soil P and applied P were subtracted.</div>'+
-  '<div class="notice good"><b>S:</b> Sulfur recommendation adjusted for canola risk, soil type, and drainage.</div>'+
-  '<div class="notice good"><b>Economics:</b> '+econ.reason+' Adjustment = '+econ.adj.toFixed(1)+' lb N/ac.</div>';
-
-  const alerts=[];
-  if(!num("soilN") || !num("soilP")) alerts.push(["bad","N or P soil value is blank. Recommendation may be wrong."]);
-  if(!num("soilS")) alerts.push(["bad","Canola needs sulfur. Enter sulfate-S if possible."]);
-  if(!num("om")) alerts.push(["warn","Organic matter is blank, so mineralization credit is zero."]);
-  if(num("ec")>2) alerts.push(["bad","EC/salinity is elevated. Be careful pushing fertility."]);
-  if(num("ph")>7.8) alerts.push(["warn","High pH can reduce P and micronutrient availability."]);
-  if(wf<0.85) alerts.push(["warn","Weather/heat risk is reducing fertility to protect dollars."]);
-  if(id("soilPUnit").value==="prs") alerts.push(["warn","PRS P is accepted, but multiplier/interpretation still needs calibration."]);
-  if(alerts.length===0) alerts.push(["good","No major warnings from current inputs."]);
-
-  id("alerts").innerHTML=alerts.map(a=>'<div class="notice '+a[0]+'">'+a[1]+'</div>').join("");
-
-  id("audit").textContent =
-`CANOLA V2 AUDIT
-
-Field: ${field}
+ const y=num("targetYield"), acres=num("acres"), field=id("fieldName").value||"Unnamed field", wf=weatherFactor(), mf=modeFactor();
+ const soilNMeasured=convertBasic(num("soilN"),id("soilNUnit").value,parseFloat(id("soilNDepth").value));
+ const soilP=convertP(num("soilP"),id("soilPUnit").value,parseFloat(id("soilPDepth").value));
+ const soilS=convertBasic(num("soilS"),id("soilSUnit").value,parseFloat(id("soilSDepth").value));
+ const nAvailFactor=soilNAvailabilityFactor(), usableSoilN=soilNMeasured*nAvailFactor, minN=mineralizationCredit(), wScore=waterScore(), st=standEstimate(), stClass=standClass(st.stand);
+ const baseNDemand=y*N_PER_BU, weatherNDemand=baseNDemand*wf*mf, remN=Math.max(0,weatherNDemand-usableSoilN-minN-num("appliedN")-num("creditN"));
+ const econ=econAdjustment(remN), finalN=Math.max(0,remN+econ.adj);
+ const maintenanceP=Math.max(0,(y*P_PER_BU*pResponseFactor()*mf)-soilP-num("appliedP"));
+ let buildExtra=0; if(id("tenure").value==="owned") buildExtra=15; else if(id("tenure").value==="longrent") buildExtra=8; else buildExtra=0;
+ const buildP=maintenanceP+buildExtra;
+ const finalS=Math.max(0,(y*S_PER_BU*sRiskFactor()*mf)-soilS-num("appliedS"));
+ const conf=confidenceScore(soilNMeasured, soilP, soilS, st);
+ id("summary").innerHTML='<div class="big">'+field+' — CANOLA</div><div class="notice good">'+stageText()+'</div>'+
+ '<table><tr><th>Output</th><th>lb/ac actual</th><th>Total actual lb</th></tr>'+
+ '<tr><td>N final</td><td>'+finalN.toFixed(0)+'</td><td>'+(finalN*acres).toFixed(0)+'</td></tr>'+
+ '<tr><td>P2O5 maintenance</td><td>'+maintenanceP.toFixed(0)+'</td><td>'+(maintenanceP*acres).toFixed(0)+'</td></tr>'+
+ '<tr><td>P2O5 build option</td><td>'+buildP.toFixed(0)+'</td><td>'+(buildP*acres).toFixed(0)+'</td></tr>'+
+ '<tr><td>S final</td><td>'+finalS.toFixed(0)+'</td><td>'+(finalS*acres).toFixed(0)+'</td></tr></table>'+
+ '<div class="notice info">Stand: '+(st.stand?st.stand.toFixed(1):"unknown")+' plants/ft² ('+st.source+', '+stClass+')</div>'+
+ '<div class="notice info">Water environment score: '+wScore.toFixed(0)+'/100</div>';
+ id("confidence").innerHTML='<div class="big">'+conf.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+conf.score+'%"></div></div><div class="small">Confidence deductions: '+(conf.notes.length?conf.notes.join(", "):"none major")+'</div>';
+ id("why").innerHTML='<div class="notice good"><b>N:</b> Uses 2.8 lb N/bu baseline, subtracts usable soil N, OM credit, applied N, then adjusts for weather/economics.</div>'+
+ '<div class="notice good"><b>P:</b> Shows maintenance and build option. Default assumption is 11-52-0 through drill side-band.</div>'+
+ '<div class="notice good"><b>Stand:</b> Before seeding, stand is estimated from seed rate/TKW/survival/depth. After emergence, actual plant count overrides it.</div>';
+ let alerts=[]; if(!num("soilN")||!num("soilP"))alerts.push(["bad","N or P soil value is blank."]); if(!num("soilS"))alerts.push(["bad","Canola needs sulfur. Enter sulfate-S if possible."]); if(st.stand&&st.stand<3)alerts.push(["warn","Estimated/actual stand is poor. Canola can compensate, but confidence drops."]); if(st.stand&&st.stand>=3&&st.stand<5)alerts.push(["warn","Stand is acceptable but not strong. Weather and flea beetle pressure matter more."]); if(num("ph")>7.3&&(id("soilPUnit").value==="bray1"||id("soilPUnit").value==="bray2"))alerts.push(["warn","Bray P may be less reliable on higher pH prairie soils; Olsen is usually preferred."]); if(num("ec")>2)alerts.push(["bad","EC/salinity elevated."]); if(wf<0.85)alerts.push(["warn","Weather/heat risk is reducing recommendation to protect dollars."]); if(alerts.length===0)alerts.push(["good","No major warnings."]);
+ id("alerts").innerHTML=alerts.map(a=>'<div class="notice '+a[0]+'">'+a[1]+'</div>').join("");
+ id("audit").textContent=`V3 AUDIT
 Target yield: ${y} bu/ac
-Acres: ${acres}
+Weather factor: ${wf.toFixed(2)}
+Mode factor: ${mf.toFixed(2)}
+Water score: ${wScore.toFixed(0)}/100
 
-N ENGINE
-Base N demand = ${y} × ${N_PER_BU} = ${baseNDemand.toFixed(1)} lb/ac
-Weather factor = ${wf.toFixed(2)}
-Mode factor = ${mf.toFixed(2)}
-Weather/mode adjusted N demand = ${weatherNDemand.toFixed(1)} lb/ac
+N:
+Base demand = ${y} × ${N_PER_BU} = ${baseNDemand.toFixed(1)}
+Adjusted demand = ${weatherNDemand.toFixed(1)}
+Measured soil N = ${soilNMeasured.toFixed(1)}
+Usable soil N factor = ${nAvailFactor.toFixed(2)}
+Usable soil N = ${usableSoilN.toFixed(1)}
+OM mineralization = ${minN.toFixed(1)}
+Remaining before economics = ${remN.toFixed(1)}
+Economic adjustment = ${econ.adj.toFixed(1)}
+Final N = ${finalN.toFixed(1)}
 
-Measured soil N = ${soilNMeasured.toFixed(1)} lb/ac
-Soil N availability factor = ${nAvailFactor.toFixed(2)}
-Usable soil N credit = ${usableSoilN.toFixed(1)} lb/ac
-Organic matter mineralization credit = ${minN.toFixed(1)} lb/ac
-Applied N = ${num("appliedN")} lb/ac
-Other N credits = ${num("creditN")} lb/ac
+P:
+Soil P planning value = ${soilP.toFixed(1)}
+P response factor = ${pResponseFactor().toFixed(2)}
+Maintenance P2O5 = ${maintenanceP.toFixed(1)}
+Build extra = ${buildExtra.toFixed(1)}
+Build P2O5 option = ${buildP.toFixed(1)}
+P source/placement = ${id("pSource").value} / ${id("pPlacement").value}
 
-Remaining N before economics = ${remainingNBeforeEcon.toFixed(1)} lb/ac
-Economic adjustment = ${econ.adj.toFixed(1)} lb/ac
-Final N recommendation = ${finalN.toFixed(1)} lb/ac
+S:
+Soil S = ${soilS.toFixed(1)}
+S risk factor = ${sRiskFactor().toFixed(2)}
+Final S = ${finalS.toFixed(1)}
 
-P ENGINE
-Base P2O5 demand = ${y} × ${P_PER_BU} × P response factor ${pResponseFactor().toFixed(2)} × mode ${mf.toFixed(2)} = ${basePDemand.toFixed(1)} lb/ac
-Soil P2O5 planning value = ${soilP.toFixed(1)} lb/ac
-Applied P2O5 = ${num("appliedP")} lb/ac
-Final P2O5 recommendation = ${finalP.toFixed(1)} lb/ac
+Stand:
+Seed rate = ${num("seedRate")} lb/ac
+TKW = ${num("tkw")} g
+Expected survival = ${num("survival")}%
+Depth = ${num("seedDepth")} inch
+Row spacing = ${num("rowSpacing")} inch
+Stand = ${st.stand?st.stand.toFixed(1):"unknown"} plants/ft² (${st.source})
+Class = ${stClass}
 
-S ENGINE
-Base S demand = ${y} × ${S_PER_BU} × S risk factor ${sRiskFactor().toFixed(2)} × mode ${mf.toFixed(2)} = ${baseSDemand.toFixed(1)} lb/ac
-Soil sulfate-S = ${soilS.toFixed(1)} lb/ac
-Applied S = ${num("appliedS")} lb/ac
-Final S recommendation = ${finalS.toFixed(1)} lb/ac
-
-FIELD CHARACTER
-OM = ${num("om")}%
-Soil type = ${id("soilType").value}
-Landscape = ${id("landscape").value}
-Drainage = ${id("drainage").value}
-pH = ${num("ph") || "blank"}
-EC = ${num("ec") || "blank"}
-
-NOTE
-These coefficients are starting values. Calibrate against tissue tests, yield maps, actual weather, and your farm results.`;
-  location.hash="#result";
+Confidence = ${conf.score.toFixed(0)}/100
+Deductions = ${conf.notes.join(", ") || "none major"}`;
+ location.hash="#result";
 }
 </script>
 </body>
