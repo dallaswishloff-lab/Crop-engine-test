@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wishloff Crop Engine V4.5</title>
+<title>Wishloff Crop Engine V4.6</title>
 <link rel="manifest" href="manifest.json">
 <style>
 *{box-sizing:border-box}
@@ -40,8 +40,8 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <header>
-<h1>Wishloff Crop Engine V4.5</h1>
-<div style="font-size:12px;color:#ddd">Economic confidence + $/lb nutrient + seasonal rainfall</div>
+<h1>Wishloff Crop Engine V4.6</h1>
+<div style="font-size:12px;color:#ddd">Report export + economic confidence</div>
 <div class="nav"><a href="#setup">Setup</a><a href="#soil">Soil</a><a href="#economics">Costs</a><a href="#result">Results</a></div>
 </header>
 
@@ -177,6 +177,7 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 <section class="card"><h2>Economic Confidence</h2><div id="econConfidence"></div></section>
 <section class="card"><h2>Cost Estimate</h2><div id="costs"></div></section>
 <section class="card"><h2>Alerts</h2><div id="alerts"></div></section>
+<section class="card"><h2>Field Report Export</h2><div class="notice info">Copy this report and text it to a friend, agronomist, banker, or save it in notes.</div><button type="button" onclick="copyReport()">Copy Field Report</button><pre id="fieldReport">Calculate first, then the report appears here.</pre></section>
 <section class="card"><h2>Audit Trail</h2><pre id="audit"></pre></section>
 </main>
 
@@ -207,7 +208,65 @@ function confidence(pdat){var score=100,notes=[];if(!num("soilN")){score-=20;not
 function costLb(priceMT,analysis,override){if(override>0)return override;if(!priceMT||!analysis)return 0;return priceMT/(2204.62*(analysis/100))}
 function economicConfidence(r){var score=100,notes=[];var cropPrice=num("cropPrice");var nC=costLb(num("nPrice"),num("nAnalysis"),num("nCostLbOverride"));var pC=costLb(num("pPrice"),num("pAnalysis"),num("pCostLbOverride"));var sC=costLb(num("sPrice"),num("sAnalysis"),num("sCostLbOverride"));if(!cropPrice){score-=22;notes.push("missing crop price")}if(!nC){score-=18;notes.push("missing N $/lb")}if(!pC){score-=18;notes.push("missing P $/lb")}if(r.S>0&&!sC){score-=8;notes.push("missing S $/lb")}if(cropPrice&&nC){var nBu=nC/cropPrice;if(nBu>.18){score-=10;notes.push("high N cost vs crop")}if(nBu>.25){score-=10;notes.push("very high N cost")}}if(cropPrice&&pC){var pBu=pC/cropPrice;if(pBu>.22){score-=10;notes.push("high P cost vs crop")}if(pBu>.32){score-=10;notes.push("very high P/build cost")}}if(id("tenure").value==="shortrent"&&r.PB>r.P){score-=12;notes.push("short-term rent lowers P build confidence")}if(rainfallFactor()<0.85){score-=10;notes.push("low rainfall reduces spend confidence")}if(rainfallFactor()>1.08){score+=4}return{score:Math.max(0,Math.min(100,score)),notes:notes,nC:nC,pC:pC,sC:sC}}
 function probability(r,soilP,soilS){var p=50,w=waterScore(),wf=weather();p+=(w-50)*.45;p+=(wf-1)*55;if(r.N>=r.nNeed*.75)p+=8;if(soilP>20)p+=6;else if(soilP<10)p-=8;if(id("crop").value==="canola"&&soilS<10)p-=8;if(id("drainage").value==="saline")p-=15;return Math.max(5,Math.min(95,p))}
-function calculate(){try{id("buttonTest").innerHTML="Calculate fired at "+new Date().toLocaleTimeString();id("buttonTest").className="notice good";var c=crop(),realY=num("realYield"),stretchY=num("stretchYield"),acres=num("acres"),field=id("fieldName").value||"Unnamed field";var wf=weather(),mf=mode();var soilN=conv(num("soilN"),id("soilNUnit").value,parseFloat(id("soilNDepth").value));var pdat=pCombined(),soilP=pdat.value;var soilS=conv(num("soilS"),id("soilSUnit").value,parseFloat(id("soilSDepth").value));var usableN=soilN*nAvail(),mineral=minN();function rec(y){var nNeed=y*c.N*wf*mf;var finalN=Math.max(0,nNeed-usableN-mineral-num("appliedN")-num("creditN"));var pMaint=Math.max(0,(y*c.P*mf)-soilP-num("appliedP"));var buildExtra=id("tenure").value==="owned"?15:id("tenure").value==="longrent"?8:0;var finalS=Math.max(0,(y*c.S*mf)-soilS-num("appliedS"));return{nNeed:nNeed,N:finalN,P:pMaint,PB:pMaint+buildExtra,S:finalS}}var r=rec(realY),s=rec(stretchY),conf=confidence(pdat),econ=economicConfidence(r),st=stand();var realProb=probability(r,soilP,soilS),stretchProb=Math.max(5,probability(s,soilP,soilS)-10);id("summary").innerHTML='<div class="big">'+field+' — '+c.label.toUpperCase()+'</div><table><tr><th>Target</th><th>N</th><th>P2O5 maint</th><th>P2O5 build</th><th>S</th><th>Probability</th></tr><tr><td>Realistic '+realY+'</td><td>'+r.N.toFixed(0)+'</td><td>'+r.P.toFixed(0)+'</td><td>'+r.PB.toFixed(0)+'</td><td>'+r.S.toFixed(0)+'</td><td>'+realProb.toFixed(0)+'%</td></tr><tr><td>Stretch '+stretchY+'</td><td>'+s.N.toFixed(0)+'</td><td>'+s.P.toFixed(0)+'</td><td>'+s.PB.toFixed(0)+'</td><td>'+s.S.toFixed(0)+'</td><td>'+stretchProb.toFixed(0)+'%</td></tr></table><div class="notice info">Estimated stand: '+(st?st.toFixed(1):"unknown")+' plants/ft²</div>';id("rainImpact").innerHTML='<div class="notice info">Rainfall factor: '+rainfallFactor().toFixed(2)+'</div><div class="notice info">Water score: '+waterScore().toFixed(0)+'/100</div><div class="notice info">Season rainfall estimate is being used in yield probability, usable N, mineralization, and economic confidence.</div>';id("pCompare").innerHTML='<table><tr><th>Reading</th><th>Type</th><th>Converted value</th><th>Trust</th></tr><tr><td>P1</td><td>'+pdat.u1+'</td><td>'+pdat.p1.toFixed(1)+'</td><td>'+pdat.t1.toFixed(2)+'</td></tr><tr><td>P2</td><td>'+pdat.u2+'</td><td>'+pdat.p2.toFixed(1)+'</td><td>'+pdat.t2.toFixed(2)+'</td></tr><tr><td>Used</td><td>'+pdat.method+'</td><td>'+pdat.value.toFixed(1)+'</td><td></td></tr></table>';id("confidence").innerHTML='<div class="notice info"><b>Agronomic confidence</b> asks: can the crop use it?</div><div class="big">'+conf.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+conf.score+'%"></div></div><div class="small">Deductions: '+(conf.notes.length?conf.notes.join(", "):"none major")+'</div>';id("econConfidence").innerHTML='<div class="notice info"><b>Economic confidence</b> asks: will it likely pay?</div><div class="big">'+econ.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+econ.score+'%"></div></div><div class="small">Deductions: '+(econ.notes.length?econ.notes.join(", "):"none major")+'</div>';id("costs").innerHTML='<table><tr><th>Item</th><th>$/lb actual</th><th>$/ac realistic</th></tr><tr><td>N</td><td>$'+(econ.nC?econ.nC.toFixed(2):"missing")+'</td><td>$'+(econ.nC*r.N).toFixed(2)+'</td></tr><tr><td>P2O5 maintenance</td><td>$'+(econ.pC?econ.pC.toFixed(2):"missing")+'</td><td>$'+(econ.pC*r.P).toFixed(2)+'</td></tr><tr><td>P2O5 build</td><td>$'+(econ.pC?econ.pC.toFixed(2):"missing")+'</td><td>$'+(econ.pC*r.PB).toFixed(2)+'</td></tr><tr><td>S</td><td>$'+(econ.sC?econ.sC.toFixed(2):"missing")+'</td><td>$'+(econ.sC*r.S).toFixed(2)+'</td></tr><tr><td>Total maint</td><td></td><td>$'+((econ.nC*r.N)+(econ.pC*r.P)+(econ.sC*r.S)).toFixed(2)+'</td></tr><tr><td>Total build</td><td></td><td>$'+((econ.nC*r.N)+(econ.pC*r.PB)+(econ.sC*r.S)).toFixed(2)+'</td></tr></table>';var alerts=[];if(!num("soilN")||!num("soilP1"))alerts.push(["bad","N or P1 is blank."]);if(id("crop").value==="canola"&&!num("soilS"))alerts.push(["bad","Canola needs sulfur."]);if(econ.score<70)alerts.push(["warn","Economic confidence reduced by missing/high cost inputs."]);if(rainfallFactor()<0.85)alerts.push(["warn","Rainfall estimate is lowering yield/economic confidence."]);if(alerts.length===0)alerts.push(["good","No major warnings."]);id("alerts").innerHTML=alerts.map(function(a){return '<div class="notice '+a[0]+'">'+a[1]+'</div>'}).join("");id("audit").textContent='V4.5 audit\\nWeather/rain factor '+wf.toFixed(2)+'\\nRainfall factor '+rainfallFactor().toFixed(2)+'\\nWater score '+waterScore().toFixed(0)+'\\nSoil N '+soilN.toFixed(1)+'\\nUsable N '+usableN.toFixed(1)+'\\nMineralization '+mineral.toFixed(1)+'\\nP used '+soilP.toFixed(1)+'\\nSoil S '+soilS.toFixed(1)+'\\nN $/lb '+(econ.nC?econ.nC.toFixed(2):"missing")+'\\nP $/lb '+(econ.pC?econ.pC.toFixed(2):"missing")+'\\nS $/lb '+(econ.sC?econ.sC.toFixed(2):"missing")+'\\nAgronomic confidence '+conf.score.toFixed(0)+'\\nEconomic confidence '+econ.score.toFixed(0);location.hash="#result"}catch(e){id("buttonTest").innerHTML="ERROR: "+e.message;id("buttonTest").className="notice bad"}}
+function calculate(){try{id("buttonTest").innerHTML="Calculate fired at "+new Date().toLocaleTimeString();id("buttonTest").className="notice good";var c=crop(),realY=num("realYield"),stretchY=num("stretchYield"),acres=num("acres"),field=id("fieldName").value||"Unnamed field";var wf=weather(),mf=mode();var soilN=conv(num("soilN"),id("soilNUnit").value,parseFloat(id("soilNDepth").value));var pdat=pCombined(),soilP=pdat.value;var soilS=conv(num("soilS"),id("soilSUnit").value,parseFloat(id("soilSDepth").value));var usableN=soilN*nAvail(),mineral=minN();function rec(y){var nNeed=y*c.N*wf*mf;var finalN=Math.max(0,nNeed-usableN-mineral-num("appliedN")-num("creditN"));var pMaint=Math.max(0,(y*c.P*mf)-soilP-num("appliedP"));var buildExtra=id("tenure").value==="owned"?15:id("tenure").value==="longrent"?8:0;var finalS=Math.max(0,(y*c.S*mf)-soilS-num("appliedS"));return{nNeed:nNeed,N:finalN,P:pMaint,PB:pMaint+buildExtra,S:finalS}}var r=rec(realY),s=rec(stretchY),conf=confidence(pdat),econ=economicConfidence(r),st=stand();var realProb=probability(r,soilP,soilS),stretchProb=Math.max(5,probability(s,soilP,soilS)-10);id("summary").innerHTML='<div class="big">'+field+' — '+c.label.toUpperCase()+'</div><table><tr><th>Target</th><th>N</th><th>P2O5 maint</th><th>P2O5 build</th><th>S</th><th>Probability</th></tr><tr><td>Realistic '+realY+'</td><td>'+r.N.toFixed(0)+'</td><td>'+r.P.toFixed(0)+'</td><td>'+r.PB.toFixed(0)+'</td><td>'+r.S.toFixed(0)+'</td><td>'+realProb.toFixed(0)+'%</td></tr><tr><td>Stretch '+stretchY+'</td><td>'+s.N.toFixed(0)+'</td><td>'+s.P.toFixed(0)+'</td><td>'+s.PB.toFixed(0)+'</td><td>'+s.S.toFixed(0)+'</td><td>'+stretchProb.toFixed(0)+'%</td></tr></table><div class="notice info">Estimated stand: '+(st?st.toFixed(1):"unknown")+' plants/ft²</div>';id("rainImpact").innerHTML='<div class="notice info">Rainfall factor: '+rainfallFactor().toFixed(2)+'</div><div class="notice info">Water score: '+waterScore().toFixed(0)+'/100</div><div class="notice info">Season rainfall estimate is being used in yield probability, usable N, mineralization, and economic confidence.</div>';id("pCompare").innerHTML='<table><tr><th>Reading</th><th>Type</th><th>Converted value</th><th>Trust</th></tr><tr><td>P1</td><td>'+pdat.u1+'</td><td>'+pdat.p1.toFixed(1)+'</td><td>'+pdat.t1.toFixed(2)+'</td></tr><tr><td>P2</td><td>'+pdat.u2+'</td><td>'+pdat.p2.toFixed(1)+'</td><td>'+pdat.t2.toFixed(2)+'</td></tr><tr><td>Used</td><td>'+pdat.method+'</td><td>'+pdat.value.toFixed(1)+'</td><td></td></tr></table>';id("confidence").innerHTML='<div class="notice info"><b>Agronomic confidence</b> asks: can the crop use it?</div><div class="big">'+conf.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+conf.score+'%"></div></div><div class="small">Deductions: '+(conf.notes.length?conf.notes.join(", "):"none major")+'</div>';id("econConfidence").innerHTML='<div class="notice info"><b>Economic confidence</b> asks: will it likely pay?</div><div class="big">'+econ.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+econ.score+'%"></div></div><div class="small">Deductions: '+(econ.notes.length?econ.notes.join(", "):"none major")+'</div>';id("costs").innerHTML='<table><tr><th>Item</th><th>$/lb actual</th><th>$/ac realistic</th></tr><tr><td>N</td><td>$'+(econ.nC?econ.nC.toFixed(2):"missing")+'</td><td>$'+(econ.nC*r.N).toFixed(2)+'</td></tr><tr><td>P2O5 maintenance</td><td>$'+(econ.pC?econ.pC.toFixed(2):"missing")+'</td><td>$'+(econ.pC*r.P).toFixed(2)+'</td></tr><tr><td>P2O5 build</td><td>$'+(econ.pC?econ.pC.toFixed(2):"missing")+'</td><td>$'+(econ.pC*r.PB).toFixed(2)+'</td></tr><tr><td>S</td><td>$'+(econ.sC?econ.sC.toFixed(2):"missing")+'</td><td>$'+(econ.sC*r.S).toFixed(2)+'</td></tr><tr><td>Total maint</td><td></td><td>$'+((econ.nC*r.N)+(econ.pC*r.P)+(econ.sC*r.S)).toFixed(2)+'</td></tr><tr><td>Total build</td><td></td><td>$'+((econ.nC*r.N)+(econ.pC*r.PB)+(econ.sC*r.S)).toFixed(2)+'</td></tr></table>';var alerts=[];if(!num("soilN")||!num("soilP1"))alerts.push(["bad","N or P1 is blank."]);if(id("crop").value==="canola"&&!num("soilS"))alerts.push(["bad","Canola needs sulfur."]);if(econ.score<70)alerts.push(["warn","Economic confidence reduced by missing/high cost inputs."]);if(rainfallFactor()<0.85)alerts.push(["warn","Rainfall estimate is lowering yield/economic confidence."]);if(alerts.length===0)alerts.push(["good","No major warnings."]);id("alerts").innerHTML=alerts.map(function(a){return '<div class="notice '+a[0]+'">'+a[1]+'</div>'}).join("");id("audit").textContent='V4.5 audit\\nWeather/rain factor '+wf.toFixed(2)+'\\nRainfall factor '+rainfallFactor().toFixed(2)+'\\nWater score '+waterScore().toFixed(0)+'\\nSoil N '+soilN.toFixed(1)+'\\nUsable N '+usableN.toFixed(1)+'\\nMineralization '+mineral.toFixed(1)+'\\nP used '+soilP.toFixed(1)+'\\nSoil S '+soilS.toFixed(1)+'\\nN $/lb '+(econ.nC?econ.nC.toFixed(2):"missing")+'\\nP $/lb '+(econ.pC?econ.pC.toFixed(2):"missing")+'\\nS $/lb '+(econ.sC?econ.sC.toFixed(2):"missing")+'\\nAgronomic confidence '+conf.score.toFixed(0)+'\\nEconomic confidence '+econ.score.toFixed(0);buildReport(field,c,realY,stretchY,r,s,conf,econ,realProb,stretchProb,soilN,usableN,mineral,soilP,soilS,pdat,wf);location.hash="#result"}catch(e){id("buttonTest").innerHTML="ERROR: "+e.message;id("buttonTest").className="notice bad"}}
+
+function moneyVal(x){return isFinite(x)?("$"+x.toFixed(2)):"missing"}
+function buildReport(field,c,realY,stretchY,r,s,conf,econ,realProb,stretchProb,soilN,usableN,mineral,soilP,soilS,pdat,wf){
+ var totalMaint=(econ.nC*r.N)+(econ.pC*r.P)+(econ.sC*r.S);
+ var totalBuild=(econ.nC*r.N)+(econ.pC*r.PB)+(econ.sC*r.S);
+ var report =
+"Wishloff Crop Engine V4.6 Field Report\n"+
+"Field: "+field+"\n"+
+"Crop: "+c.label+"\n"+
+"Acres: "+(num("acres")||"blank")+"\n"+
+"\nYIELD TARGETS\n"+
+"Realistic: "+realY+" bu/ac, probability "+realProb.toFixed(0)+"%\n"+
+"Stretch: "+stretchY+" bu/ac, probability "+stretchProb.toFixed(0)+"%\n"+
+"\nRECOMMENDATION - REALISTIC TARGET\n"+
+"N: "+r.N.toFixed(0)+" lb/ac actual\n"+
+"P2O5 maintenance: "+r.P.toFixed(0)+" lb/ac\n"+
+"P2O5 build option: "+r.PB.toFixed(0)+" lb/ac\n"+
+"S: "+r.S.toFixed(0)+" lb/ac\n"+
+"\nCOST ESTIMATE\n"+
+"N cost: "+(econ.nC?moneyVal(econ.nC)+"/lb actual":"missing")+"\n"+
+"P2O5 cost: "+(econ.pC?moneyVal(econ.pC)+"/lb actual":"missing")+"\n"+
+"S cost: "+(econ.sC?moneyVal(econ.sC)+"/lb actual":"missing")+"\n"+
+"Maintenance spend: "+moneyVal(totalMaint)+"/ac\n"+
+"Build spend: "+moneyVal(totalBuild)+"/ac\n"+
+"\nCONFIDENCE\n"+
+"Agronomic confidence: "+conf.score.toFixed(0)+"/100\n"+
+"Economic confidence: "+econ.score.toFixed(0)+"/100\n"+
+"\nSOIL / WATER SUMMARY\n"+
+"Soil N measured: "+soilN.toFixed(1)+" lb/ac\n"+
+"Usable soil N: "+usableN.toFixed(1)+" lb/ac\n"+
+"OM mineralization credit: "+mineral.toFixed(1)+" lb/ac\n"+
+"P used by engine: "+soilP.toFixed(1)+" lb/ac ("+pdat.method+")\n"+
+"Soil S: "+soilS.toFixed(1)+" lb/ac\n"+
+"Rain/weather factor: "+wf.toFixed(2)+"\n"+
+"Rainfall factor: "+rainfallFactor().toFixed(2)+"\n"+
+"Water score: "+waterScore().toFixed(0)+"/100\n"+
+"\nNOTES\n"+
+"Default P assumption: 11-52-0 MAP side-banded through drill unless changed.\n"+
+"This is a prototype decision-support report, not a certified agronomy recommendation.";
+ id("fieldReport").textContent=report;
+}
+function copyReport(){
+ var txt=id("fieldReport").textContent;
+ if(!txt || txt.indexOf("Calculate first")>=0){alert("Calculate first, then copy report.");return}
+ if(navigator.clipboard && navigator.clipboard.writeText){
+   navigator.clipboard.writeText(txt).then(function(){alert("Field report copied.");}).catch(function(){fallbackCopy(txt);});
+ }else{fallbackCopy(txt)}
+}
+function fallbackCopy(txt){
+ var ta=document.createElement("textarea");
+ ta.value=txt;
+ document.body.appendChild(ta);
+ ta.select();
+ document.execCommand("copy");
+ document.body.removeChild(ta);
+ alert("Field report copied.");
+}
+
 cropChanged();
 </script>
 </body>
