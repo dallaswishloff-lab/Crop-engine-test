@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wishloff Crop Engine V4.2 Fixed</title>
+<title>Wishloff Crop Engine V4.5</title>
 <link rel="manifest" href="manifest.json">
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;background:#f4f4f4;color:#111}
-header{background:#111;color:white;padding:14px;position:sticky;top:0;z-index:2}
+header{background:#111;color:#fff;padding:14px;position:sticky;top:0;z-index:2}
 h1{font-size:21px;margin:0}
-main{max-width:820px;margin:auto;padding:12px 12px 115px}
-.card{background:white;border:1px solid #ccc;border-radius:14px;padding:14px;margin:12px 0}
+main{max-width:860px;margin:auto;padding:12px 12px 115px}
+.card{background:#fff;border:1px solid #ccc;border-radius:14px;padding:14px;margin:12px 0}
 h2{font-size:19px;margin:0 0 10px}
 h3{font-size:16px;margin:16px 0 6px}
 label{display:block;font-weight:800;font-size:14px;margin:12px 0 5px}
 input,select,button{width:100%;font-size:18px;min-height:48px;border-radius:11px}
 input,select{border:1px solid #999;padding:10px;background:#fff;color:#111}
-button{border:0;background:#111;color:white;font-weight:900;padding:12px;margin-top:10px}
+button{border:0;background:#111;color:#fff;font-weight:900;padding:12px;margin-top:10px}
 .notice{padding:10px;border-radius:11px;margin:10px 0;font-size:14px;line-height:1.35}
 .good{background:#e7f4e8;border:1px solid #8cbd91}
 .warn{background:#fff0bf;border:1px solid #c7a43d}
@@ -30,8 +30,8 @@ td,th{border-bottom:1px solid #ddd;padding:8px 4px;text-align:left;vertical-alig
 .big{font-size:24px;font-weight:900}
 .small{font-size:13px;color:#555;line-height:1.35}
 pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:13px;line-height:1.35}
-.bottom{position:fixed;left:0;right:0;bottom:0;background:white;border-top:1px solid #ccc;padding:10px;z-index:3}
-.bottom div{max-width:820px;margin:auto}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ccc;padding:10px;z-index:3}
+.bottom div{max-width:860px;margin:auto}
 .bottom button{margin:0}
 .nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
 .nav a{background:#333;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:8px;font-size:13px;font-weight:800}
@@ -40,9 +40,9 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <header>
-<h1>Wishloff Crop Engine V4.2</h1>
-<div style="font-size:12px;color:#ddd">Fixed calculate + visible dual phosphorus</div>
-<div class="nav"><a href="#setup">Setup</a><a href="#soil">Soil</a><a href="#stand">Stand</a><a href="#result">Results</a></div>
+<h1>Wishloff Crop Engine V4.5</h1>
+<div style="font-size:12px;color:#ddd">Economic confidence + $/lb nutrient + seasonal rainfall</div>
+<div class="nav"><a href="#setup">Setup</a><a href="#soil">Soil</a><a href="#economics">Costs</a><a href="#result">Results</a></div>
 </header>
 
 <main>
@@ -61,7 +61,7 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 </div>
 <div class="row2">
 <div><label>Stretch goal yield bu/ac</label><input id="stretchYield" type="number" value="70"></div>
-<div><label>Crop price $/bu</label><input id="cropPrice" type="number" step="0.01" placeholder="Optional"></div>
+<div><label>Crop price $/bu</label><input id="cropPrice" type="number" step="0.01" placeholder="Needed for economics"></div>
 </div>
 <label>Risk posture</label>
 <select id="mode"><option value="balanced">Balanced return</option><option value="conservative">Conservative cash protection</option><option value="push">Yield push</option></select>
@@ -76,33 +76,17 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 <label>N units</label><select id="soilNUnit"><option value="lbac">lb/ac</option><option value="ppm">ppm</option><option value="kgha">kg/ha</option><option value="mgkg">mg/kg</option></select>
 <label>N sample depth</label><select id="soilNDepth"><option value="6">0-6 inch</option><option value="12">0-12 inch</option><option value="24" selected>0-24 inch</option><option value="36">0-36 inch</option></select>
 
-<div class="notice info"><b>Phosphorus now has TWO readings.</b> Use P1 for your main test and P2 if you also have Bray/Olsen/PRS from the same field.</div>
-
+<div class="notice info"><b>Dual phosphorus readings.</b> Use P1 for your main test and P2 if you also have Bray/Olsen/PRS.</div>
 <h3>Phosphorus Reading 1</h3>
 <label>P1 value</label><input id="soilP1" type="number" step="0.1" placeholder="Enter first P reading">
 <label>P1 test type / units</label>
-<select id="soilP1Unit">
-<option value="olsen">Olsen / Bicarb P ppm</option>
-<option value="bray1">Bray P1 ppm</option>
-<option value="bray2">Bray P2 ppm</option>
-<option value="prs">Western Ag PRS P supply rate</option>
-<option value="lbP2O5">Available P2O5 lb/ac</option>
-<option value="kghaP2O5">P2O5 kg/ha</option>
-</select>
+<select id="soilP1Unit"><option value="olsen">Olsen / Bicarb P ppm</option><option value="bray1">Bray P1 ppm</option><option value="bray2">Bray P2 ppm</option><option value="prs">Western Ag PRS P supply rate</option><option value="lbP2O5">Available P2O5 lb/ac</option><option value="kghaP2O5">P2O5 kg/ha</option></select>
 <label>P1 sample depth</label><select id="soilP1Depth"><option value="6" selected>0-6 inch</option><option value="12">0-12 inch</option><option value="24">0-24 inch</option></select>
 
 <h3>Phosphorus Reading 2 optional</h3>
 <label>P2 value</label><input id="soilP2" type="number" step="0.1" placeholder="Optional second P reading">
 <label>P2 test type / units</label>
-<select id="soilP2Unit">
-<option value="none">None</option>
-<option value="olsen">Olsen / Bicarb P ppm</option>
-<option value="bray1">Bray P1 ppm</option>
-<option value="bray2">Bray P2 ppm</option>
-<option value="prs">Western Ag PRS P supply rate</option>
-<option value="lbP2O5">Available P2O5 lb/ac</option>
-<option value="kghaP2O5">P2O5 kg/ha</option>
-</select>
+<select id="soilP2Unit"><option value="none">None</option><option value="olsen">Olsen / Bicarb P ppm</option><option value="bray1">Bray P1 ppm</option><option value="bray2">Bray P2 ppm</option><option value="prs">Western Ag PRS P supply rate</option><option value="lbP2O5">Available P2O5 lb/ac</option><option value="kghaP2O5">P2O5 kg/ha</option></select>
 <label>P2 sample depth</label><select id="soilP2Depth"><option value="6" selected>0-6 inch</option><option value="12">0-12 inch</option><option value="24">0-24 inch</option></select>
 
 <label>Sulfate-S value</label><input id="soilS" type="number" step="0.1" placeholder="Enter lab value">
@@ -126,7 +110,7 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 <select id="drainage"><option value="normal" selected>Normal</option><option value="dry">Dries out fast</option><option value="wet">Wet / waterlogging risk</option><option value="saline">Saline risk</option></select>
 </section>
 
-<section id="stand" class="card">
+<section class="card">
 <h2>4. Stand Estimate</h2>
 <label>Seed rate</label><input id="seedRate" type="number" step="0.1" placeholder="Canola lb/ac, cereals lb/ac">
 <label>Thousand kernel weight / TKW, grams</label><input id="tkw" type="number" step="0.1" placeholder="Optional">
@@ -136,8 +120,26 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 <label>Actual stand after emergence</label><input id="actualStand" type="number" step="0.1" placeholder="Canola plants/ft², cereals plants/ft²">
 </section>
 
-<section class="card">
-<h2>5. Already Applied / Strategy</h2>
+<section id="economics" class="card">
+<h2>5. Costs + Already Applied</h2>
+<div class="notice info">Enter either product $/MT + analysis OR direct $/lb actual nutrient. Direct $/lb overrides product math.</div>
+
+<h3>Nitrogen cost</h3>
+<label>N product price $/MT</label><input id="nPrice" type="number" step="1" placeholder="Example: urea 675">
+<label>N product analysis % N</label><input id="nAnalysis" type="number" step="0.1" placeholder="Example: urea 46, NH3 82">
+<label>N cost $/lb actual override</label><input id="nCostLbOverride" type="number" step="0.01" placeholder="Optional, example: 0.67">
+
+<h3>Phosphorus cost</h3>
+<label>P product price $/MT</label><input id="pPrice" type="number" step="1" placeholder="Example: 11-52-0 at 1315">
+<label>P product analysis % P2O5</label><input id="pAnalysis" type="number" step="0.1" value="52">
+<label>P2O5 cost $/lb actual override</label><input id="pCostLbOverride" type="number" step="0.01" placeholder="Optional, example: 1.15">
+
+<h3>Sulfur cost optional</h3>
+<label>S product price $/MT</label><input id="sPrice" type="number" step="1" placeholder="Optional">
+<label>S product analysis % S</label><input id="sAnalysis" type="number" step="0.1" placeholder="Optional">
+<label>S cost $/lb actual override</label><input id="sCostLbOverride" type="number" step="0.01" placeholder="Optional">
+
+<h3>Already applied</h3>
 <label>Actual N already applied lb/ac</label><input id="appliedN" type="number" step="0.1" placeholder="0 if none">
 <label>N credits lb/ac</label><input id="creditN" type="number" step="0.1" placeholder="0 if none">
 <label>P2O5 already applied lb/ac</label><input id="appliedP" type="number" step="0.1" placeholder="0 if none">
@@ -149,6 +151,13 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 
 <section class="card">
 <h2>6. Rainfall + Heat</h2>
+<div class="notice info">Season rainfall now affects water score, yield probability, nutrient efficiency, and economic confidence.</div>
+<div class="row2">
+<div><label>Season rainfall estimate, inches</label><input id="seasonRain" type="number" step="0.1" placeholder="Example: 9.5"></div>
+<div><label>Historic normal rainfall, inches</label><input id="normalRain" type="number" step="0.1" placeholder="Example: 10.5"></div>
+</div>
+<label>Rainfall timing quality</label>
+<select id="rainTiming"><option value="poor">Poor timing</option><option value="average" selected>Average timing</option><option value="good">Good timing</option><option value="excellent">Excellent timing</option></select>
 <label>Current/available moisture</label><select id="moisture"><option value="0.70">Very dry</option><option value="0.85">Below average</option><option value="1.00" selected>Average</option><option value="1.10">Good</option><option value="1.20">Excellent</option></select>
 <label>10-year historic moisture trend</label><select id="historic"><option value="0.90">Drier than normal</option><option value="1.00" selected>Normal</option><option value="1.08">Wetter than normal</option></select>
 <label>Season timing</label><select id="seasonTiming"><option value="preseed" selected>Pre-seed</option><option value="early">Early season</option><option value="mid">Mid season</option><option value="late">Late season</option></select>
@@ -162,8 +171,11 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 <button type="button" onclick="calculate()">Calculate Now</button>
 </section>
 
+<section class="card"><h2>Rainfall Impact</h2><div id="rainImpact"></div></section>
 <section class="card"><h2>Phosphorus Comparison</h2><div id="pCompare"></div></section>
 <section class="card"><h2>Confidence</h2><div id="confidence"></div></section>
+<section class="card"><h2>Economic Confidence</h2><div id="econConfidence"></div></section>
+<section class="card"><h2>Cost Estimate</h2><div id="costs"></div></section>
 <section class="card"><h2>Alerts</h2><div id="alerts"></div></section>
 <section class="card"><h2>Audit Trail</h2><pre id="audit"></pre></section>
 </main>
@@ -171,64 +183,31 @@ pre{white-space:pre-wrap;background:#f8f8f8;border:1px solid #ddd;border-radius:
 <div class="bottom"><div><button type="button" onclick="calculate()">Calculate</button></div></div>
 
 <script>
-var cropData = {
+var cropData={
  canola:{label:"Canola",N:2.8,P:0.75,S:0.36,real:60,stretch:70,price:13.2,info:"Canola: moisture, N, heat timing, P access, stand resilience, sulfur balance."},
  wheat:{label:"Spring wheat",N:2.2,P:0.55,S:0.12,real:80,stretch:100,price:7,info:"Wheat: moisture, N timing, P/rooting, protein potential, heat at flowering."},
  barley:{label:"Barley",N:1.6,P:0.45,S:0.10,real:100,stretch:120,price:5.5,info:"Barley: moisture, N efficiency, lodging risk, P/rooting, quality risk."}
 };
 function id(x){return document.getElementById(x)}
-function num(x){var v=parseFloat(id(x).value); return isNaN(v)?0:v}
+function num(x){var v=parseFloat(id(x).value);return isNaN(v)?0:v}
 function crop(){return cropData[id("crop").value]}
-function cropChanged(){var c=crop(); id("realYield").value=c.real; id("stretchYield").value=c.stretch; id("cropPrice").placeholder="Example: "+c.price; id("cropInfo").innerHTML=c.info; id("survival").value=(id("crop").value==="canola")?60:85}
+function cropChanged(){var c=crop();id("realYield").value=c.real;id("stretchYield").value=c.stretch;id("cropPrice").placeholder="Example: "+c.price;id("cropInfo").innerHTML=c.info;id("survival").value=(id("crop").value==="canola")?60:85}
 function conv(v,u,d){if(u==="lbac")return v;if(u==="kgha")return v*0.892;if(u==="ppm"||u==="mgkg")return v*(2*(d/6));return v}
 function convP(v,u,d){if(!v||u==="none")return 0;if(u==="lbP2O5")return v;if(u==="kghaP2O5")return v*0.892;if(u==="olsen")return v*(2*(d/6));if(u==="bray1")return v*(2*(d/6))*0.95;if(u==="bray2")return v*(2*(d/6))*1.05;if(u==="prs")return v;return v}
-function pTrust(u){var ph=num("ph"); if(u==="none")return 0; if(u==="olsen")return 1.0; if(u==="bray1"||u==="bray2")return ph>7.3?0.55:0.90; if(u==="prs")return 0.65; return 0.80}
-function pCombined(){
- var u1=id("soilP1Unit").value, u2=id("soilP2Unit").value;
- var p1=convP(num("soilP1"),u1,parseFloat(id("soilP1Depth").value));
- var p2=convP(num("soilP2"),u2,parseFloat(id("soilP2Depth").value));
- var t1=pTrust(u1), t2=pTrust(u2);
- if(!p2 || u2==="none") return {value:p1,p1:p1,p2:0,u1:u1,u2:u2,t1:t1,t2:0,method:"P1 only"};
- var val=((p1*t1)+(p2*t2))/(t1+t2);
- return {value:val,p1:p1,p2:p2,u1:u1,u2:u2,t1:t1,t2:t2,method:"weighted P1 + P2"};
-}
-function weather(){var m=parseFloat(id("moisture").value), h=parseFloat(id("heat").value), hist=parseFloat(id("historic").value), t=id("seasonTiming").value; var cw=.7, hw=.3; if(t==="preseed"){cw=.5;hw=.5}else if(t==="early"){cw=.6;hw=.4}else if(t==="late"){cw=.85;hw=.15} return ((m*cw)+(hist*hw))*h}
-function mode(){var m=id("mode").value; return m==="conservative"?.92:m==="push"?1.06:1}
-function minN(){var om=num("om"), soil=id("soilType").value; if(!om)return 0; var c=om*3; if(soil==="sandy"||soil==="sandy_loam")c*=.75; if(soil==="black_loam")c*=1.1; if(soil==="peat")c*=1.25; return Math.min(30,Math.max(0,c))}
-function nAvail(){var m=parseFloat(id("moisture").value), soil=id("soilType").value, dr=id("drainage").value; var f=.95; if(m<=.7)f=.78; else if(m<=.85)f=.86; else if(m>=1.2)f=.92; else if(m>=1.1)f=.98; if(soil==="sandy"||soil==="sandy_loam")f-=.04; if(dr==="wet")f-=.05; if(dr==="saline")f-=.07; if(dr==="dry")f-=.03; return Math.max(.7,Math.min(1,f))}
-function stand(){var actual=num("actualStand"); if(actual>0)return actual; var rate=num("seedRate"), tkw=num("tkw"), surv=num("survival")||75; if(!rate||!tkw)return 0; var plants=(rate*(453592.37/tkw)/43560)*(surv/100); return plants}
-function confidence(pdat){var score=100, notes=[]; if(!num("soilN")){score-=20;notes.push("missing N")} if(!num("soilP1")){score-=18;notes.push("missing P1")} if(id("crop").value==="canola"&&!num("soilS")){score-=18;notes.push("missing S")} if(!num("om")){score-=10;notes.push("missing OM")} if(!num("ph")){score-=8;notes.push("missing pH")} if(pdat.p2>0)score+=4; if((pdat.u1==="bray1"||pdat.u1==="bray2"||pdat.u2==="bray1"||pdat.u2==="bray2")&&num("ph")>7.3){score-=10;notes.push("Bray less reliable at high pH")} return {score:Math.max(0,Math.min(100,score)),notes:notes}}
-function calculate(){
- try{
-  id("buttonTest").innerHTML="Calculate fired at "+new Date().toLocaleTimeString();
-  id("buttonTest").className="notice good";
-  var c=crop(), realY=num("realYield"), stretchY=num("stretchYield"), acres=num("acres"), field=id("fieldName").value||"Unnamed field";
-  var wf=weather(), mf=mode();
-  var soilN=conv(num("soilN"),id("soilNUnit").value,parseFloat(id("soilNDepth").value));
-  var pdat=pCombined(), soilP=pdat.value;
-  var soilS=conv(num("soilS"),id("soilSUnit").value,parseFloat(id("soilSDepth").value));
-  var usableN=soilN*nAvail(), mineral=minN();
-  function rec(y){
-    var nNeed=y*c.N*wf*mf;
-    var finalN=Math.max(0,nNeed-usableN-mineral-num("appliedN")-num("creditN"));
-    var pMaint=Math.max(0,(y*c.P*mf)-soilP-num("appliedP"));
-    var buildExtra=id("tenure").value==="owned"?15:id("tenure").value==="longrent"?8:0;
-    var finalS=Math.max(0,(y*c.S*mf)-soilS-num("appliedS"));
-    return {N:finalN,P:pMaint,PB:pMaint+buildExtra,S:finalS};
-  }
-  var r=rec(realY), s=rec(stretchY), conf=confidence(pdat), st=stand();
-  id("summary").innerHTML='<div class="big">'+field+' — '+c.label.toUpperCase()+'</div><table><tr><th>Target</th><th>N</th><th>P2O5 maint</th><th>P2O5 build</th><th>S</th></tr><tr><td>Realistic '+realY+'</td><td>'+r.N.toFixed(0)+'</td><td>'+r.P.toFixed(0)+'</td><td>'+r.PB.toFixed(0)+'</td><td>'+r.S.toFixed(0)+'</td></tr><tr><td>Stretch '+stretchY+'</td><td>'+s.N.toFixed(0)+'</td><td>'+s.P.toFixed(0)+'</td><td>'+s.PB.toFixed(0)+'</td><td>'+s.S.toFixed(0)+'</td></tr></table><div class="notice info">Estimated stand: '+(st?st.toFixed(1):"unknown")+' plants/ft²</div>';
-  id("pCompare").innerHTML='<table><tr><th>Reading</th><th>Type</th><th>Converted value</th><th>Trust</th></tr><tr><td>P1</td><td>'+pdat.u1+'</td><td>'+pdat.p1.toFixed(1)+'</td><td>'+pdat.t1.toFixed(2)+'</td></tr><tr><td>P2</td><td>'+pdat.u2+'</td><td>'+pdat.p2.toFixed(1)+'</td><td>'+pdat.t2.toFixed(2)+'</td></tr><tr><td>Used</td><td>'+pdat.method+'</td><td>'+pdat.value.toFixed(1)+'</td><td></td></tr></table>';
-  id("confidence").innerHTML='<div class="big">'+conf.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+conf.score+'%"></div></div><div class="small">Deductions: '+(conf.notes.length?conf.notes.join(", "):"none major")+'</div>';
-  var alerts=[]; if(!num("soilN")||!num("soilP1"))alerts.push(["bad","N or P1 is blank."]); if(id("crop").value==="canola"&&!num("soilS"))alerts.push(["bad","Canola needs sulfur."]); if((pdat.u1.indexOf("bray")>=0||pdat.u2.indexOf("bray")>=0)&&num("ph")>7.3)alerts.push(["warn","Bray P may be less reliable on higher pH prairie soils."]); if(alerts.length===0)alerts.push(["good","No major warnings."]);
-  id("alerts").innerHTML=alerts.map(function(a){return '<div class="notice '+a[0]+'">'+a[1]+'</div>'}).join("");
-  id("audit").textContent='V4.2 audit\nWeather factor '+wf.toFixed(2)+'\nSoil N '+soilN.toFixed(1)+'\nUsable N '+usableN.toFixed(1)+'\nMineralization '+mineral.toFixed(1)+'\nP1 '+pdat.p1.toFixed(1)+' '+pdat.u1+'\nP2 '+pdat.p2.toFixed(1)+' '+pdat.u2+'\nP used '+soilP.toFixed(1)+'\nSoil S '+soilS.toFixed(1);
-  location.hash="#result";
- }catch(e){
-  id("buttonTest").innerHTML="ERROR: "+e.message;
-  id("buttonTest").className="notice bad";
- }
-}
+function pTrust(u){var ph=num("ph");if(u==="none")return 0;if(u==="olsen")return 1;if(u==="bray1"||u==="bray2")return ph>7.3?0.55:0.90;if(u==="prs")return 0.65;return 0.80}
+function pCombined(){var u1=id("soilP1Unit").value,u2=id("soilP2Unit").value;var p1=convP(num("soilP1"),u1,parseFloat(id("soilP1Depth").value));var p2=convP(num("soilP2"),u2,parseFloat(id("soilP2Depth").value));var t1=pTrust(u1),t2=pTrust(u2);if(!p2||u2==="none")return{value:p1,p1:p1,p2:0,u1:u1,u2:u2,t1:t1,t2:0,method:"P1 only"};var val=((p1*t1)+(p2*t2))/(t1+t2);return{value:val,p1:p1,p2:p2,u1:u1,u2:u2,t1:t1,t2:t2,method:"weighted P1 + P2"}}
+function rainfallFactor(){var sr=num("seasonRain"),nr=num("normalRain");if(!sr||!nr)return 1;var ratio=sr/nr;var f=1;if(ratio<0.55)f=0.72;else if(ratio<0.75)f=0.84;else if(ratio<0.95)f=0.94;else if(ratio<=1.15)f=1.03;else if(ratio<=1.35)f=1.08;else f=0.98;var timing=id("rainTiming").value;if(timing==="poor")f-=0.08;if(timing==="good")f+=0.05;if(timing==="excellent")f+=0.08;return Math.max(0.65,Math.min(1.15,f))}
+function weather(){var m=parseFloat(id("moisture").value),h=parseFloat(id("heat").value),hist=parseFloat(id("historic").value),t=id("seasonTiming").value;var cw=.7,hw=.3;if(t==="preseed"){cw=.5;hw=.5}else if(t==="early"){cw=.6;hw=.4}else if(t==="late"){cw=.85;hw=.15}return ((m*cw)+(hist*hw))*h*rainfallFactor()}
+function mode(){var m=id("mode").value;return m==="conservative"?.92:m==="push"?1.06:1}
+function minN(){var om=num("om"),soil=id("soilType").value;if(!om)return 0;var c=om*3;if(soil==="sandy"||soil==="sandy_loam")c*=.75;if(soil==="black_loam")c*=1.1;if(soil==="peat")c*=1.25;c*=rainfallFactor();return Math.min(35,Math.max(0,c))}
+function nAvail(){var m=parseFloat(id("moisture").value),soil=id("soilType").value,dr=id("drainage").value;var f=.95;if(m<=.7)f=.78;else if(m<=.85)f=.86;else if(m>=1.2)f=.92;else if(m>=1.1)f=.98;if(rainfallFactor()<0.85)f-=.06;if(rainfallFactor()>1.08)f+=.03;if(soil==="sandy"||soil==="sandy_loam")f-=.04;if(dr==="wet")f-=.05;if(dr==="saline")f-=.07;if(dr==="dry")f-=.03;return Math.max(.65,Math.min(1,f))}
+function waterScore(){var s=50,wh=id("waterHolding").value,dr=id("drainage").value,soil=id("soilType").value,m=parseFloat(id("moisture").value);if(wh==="low")s-=20;if(wh==="moderate")s-=5;if(wh==="good")s+=10;if(wh==="excellent")s+=20;if(wh==="variable")s-=5;if(soil==="black_loam"||soil==="clay_loam")s+=8;if(soil==="sandy"||soil==="sandy_loam")s-=10;if(dr==="dry")s-=12;if(dr==="wet")s-=5;if(dr==="saline")s-=18;s+=(m-1)*50;s+=(rainfallFactor()-1)*80;return Math.max(0,Math.min(100,s))}
+function stand(){var actual=num("actualStand");if(actual>0)return actual;var rate=num("seedRate"),tkw=num("tkw"),surv=num("survival")||75;if(!rate||!tkw)return 0;return(rate*(453592.37/tkw)/43560)*(surv/100)}
+function confidence(pdat){var score=100,notes=[];if(!num("soilN")){score-=20;notes.push("missing N")}if(!num("soilP1")){score-=18;notes.push("missing P1")}if(id("crop").value==="canola"&&!num("soilS")){score-=18;notes.push("missing S")}if(!num("om")){score-=10;notes.push("missing OM")}if(!num("ph")){score-=8;notes.push("missing pH")}if(!num("seasonRain")||!num("normalRain")){score-=8;notes.push("missing rainfall estimate")}if(pdat.p2>0)score+=4;if((pdat.u1==="bray1"||pdat.u1==="bray2"||pdat.u2==="bray1"||pdat.u2==="bray2")&&num("ph")>7.3){score-=10;notes.push("Bray less reliable at high pH")}return{score:Math.max(0,Math.min(100,score)),notes:notes}}
+function costLb(priceMT,analysis,override){if(override>0)return override;if(!priceMT||!analysis)return 0;return priceMT/(2204.62*(analysis/100))}
+function economicConfidence(r){var score=100,notes=[];var cropPrice=num("cropPrice");var nC=costLb(num("nPrice"),num("nAnalysis"),num("nCostLbOverride"));var pC=costLb(num("pPrice"),num("pAnalysis"),num("pCostLbOverride"));var sC=costLb(num("sPrice"),num("sAnalysis"),num("sCostLbOverride"));if(!cropPrice){score-=22;notes.push("missing crop price")}if(!nC){score-=18;notes.push("missing N $/lb")}if(!pC){score-=18;notes.push("missing P $/lb")}if(r.S>0&&!sC){score-=8;notes.push("missing S $/lb")}if(cropPrice&&nC){var nBu=nC/cropPrice;if(nBu>.18){score-=10;notes.push("high N cost vs crop")}if(nBu>.25){score-=10;notes.push("very high N cost")}}if(cropPrice&&pC){var pBu=pC/cropPrice;if(pBu>.22){score-=10;notes.push("high P cost vs crop")}if(pBu>.32){score-=10;notes.push("very high P/build cost")}}if(id("tenure").value==="shortrent"&&r.PB>r.P){score-=12;notes.push("short-term rent lowers P build confidence")}if(rainfallFactor()<0.85){score-=10;notes.push("low rainfall reduces spend confidence")}if(rainfallFactor()>1.08){score+=4}return{score:Math.max(0,Math.min(100,score)),notes:notes,nC:nC,pC:pC,sC:sC}}
+function probability(r,soilP,soilS){var p=50,w=waterScore(),wf=weather();p+=(w-50)*.45;p+=(wf-1)*55;if(r.N>=r.nNeed*.75)p+=8;if(soilP>20)p+=6;else if(soilP<10)p-=8;if(id("crop").value==="canola"&&soilS<10)p-=8;if(id("drainage").value==="saline")p-=15;return Math.max(5,Math.min(95,p))}
+function calculate(){try{id("buttonTest").innerHTML="Calculate fired at "+new Date().toLocaleTimeString();id("buttonTest").className="notice good";var c=crop(),realY=num("realYield"),stretchY=num("stretchYield"),acres=num("acres"),field=id("fieldName").value||"Unnamed field";var wf=weather(),mf=mode();var soilN=conv(num("soilN"),id("soilNUnit").value,parseFloat(id("soilNDepth").value));var pdat=pCombined(),soilP=pdat.value;var soilS=conv(num("soilS"),id("soilSUnit").value,parseFloat(id("soilSDepth").value));var usableN=soilN*nAvail(),mineral=minN();function rec(y){var nNeed=y*c.N*wf*mf;var finalN=Math.max(0,nNeed-usableN-mineral-num("appliedN")-num("creditN"));var pMaint=Math.max(0,(y*c.P*mf)-soilP-num("appliedP"));var buildExtra=id("tenure").value==="owned"?15:id("tenure").value==="longrent"?8:0;var finalS=Math.max(0,(y*c.S*mf)-soilS-num("appliedS"));return{nNeed:nNeed,N:finalN,P:pMaint,PB:pMaint+buildExtra,S:finalS}}var r=rec(realY),s=rec(stretchY),conf=confidence(pdat),econ=economicConfidence(r),st=stand();var realProb=probability(r,soilP,soilS),stretchProb=Math.max(5,probability(s,soilP,soilS)-10);id("summary").innerHTML='<div class="big">'+field+' — '+c.label.toUpperCase()+'</div><table><tr><th>Target</th><th>N</th><th>P2O5 maint</th><th>P2O5 build</th><th>S</th><th>Probability</th></tr><tr><td>Realistic '+realY+'</td><td>'+r.N.toFixed(0)+'</td><td>'+r.P.toFixed(0)+'</td><td>'+r.PB.toFixed(0)+'</td><td>'+r.S.toFixed(0)+'</td><td>'+realProb.toFixed(0)+'%</td></tr><tr><td>Stretch '+stretchY+'</td><td>'+s.N.toFixed(0)+'</td><td>'+s.P.toFixed(0)+'</td><td>'+s.PB.toFixed(0)+'</td><td>'+s.S.toFixed(0)+'</td><td>'+stretchProb.toFixed(0)+'%</td></tr></table><div class="notice info">Estimated stand: '+(st?st.toFixed(1):"unknown")+' plants/ft²</div>';id("rainImpact").innerHTML='<div class="notice info">Rainfall factor: '+rainfallFactor().toFixed(2)+'</div><div class="notice info">Water score: '+waterScore().toFixed(0)+'/100</div><div class="notice info">Season rainfall estimate is being used in yield probability, usable N, mineralization, and economic confidence.</div>';id("pCompare").innerHTML='<table><tr><th>Reading</th><th>Type</th><th>Converted value</th><th>Trust</th></tr><tr><td>P1</td><td>'+pdat.u1+'</td><td>'+pdat.p1.toFixed(1)+'</td><td>'+pdat.t1.toFixed(2)+'</td></tr><tr><td>P2</td><td>'+pdat.u2+'</td><td>'+pdat.p2.toFixed(1)+'</td><td>'+pdat.t2.toFixed(2)+'</td></tr><tr><td>Used</td><td>'+pdat.method+'</td><td>'+pdat.value.toFixed(1)+'</td><td></td></tr></table>';id("confidence").innerHTML='<div class="notice info"><b>Agronomic confidence</b> asks: can the crop use it?</div><div class="big">'+conf.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+conf.score+'%"></div></div><div class="small">Deductions: '+(conf.notes.length?conf.notes.join(", "):"none major")+'</div>';id("econConfidence").innerHTML='<div class="notice info"><b>Economic confidence</b> asks: will it likely pay?</div><div class="big">'+econ.score.toFixed(0)+'/100</div><div class="meter"><div style="width:'+econ.score+'%"></div></div><div class="small">Deductions: '+(econ.notes.length?econ.notes.join(", "):"none major")+'</div>';id("costs").innerHTML='<table><tr><th>Item</th><th>$/lb actual</th><th>$/ac realistic</th></tr><tr><td>N</td><td>$'+(econ.nC?econ.nC.toFixed(2):"missing")+'</td><td>$'+(econ.nC*r.N).toFixed(2)+'</td></tr><tr><td>P2O5 maintenance</td><td>$'+(econ.pC?econ.pC.toFixed(2):"missing")+'</td><td>$'+(econ.pC*r.P).toFixed(2)+'</td></tr><tr><td>P2O5 build</td><td>$'+(econ.pC?econ.pC.toFixed(2):"missing")+'</td><td>$'+(econ.pC*r.PB).toFixed(2)+'</td></tr><tr><td>S</td><td>$'+(econ.sC?econ.sC.toFixed(2):"missing")+'</td><td>$'+(econ.sC*r.S).toFixed(2)+'</td></tr><tr><td>Total maint</td><td></td><td>$'+((econ.nC*r.N)+(econ.pC*r.P)+(econ.sC*r.S)).toFixed(2)+'</td></tr><tr><td>Total build</td><td></td><td>$'+((econ.nC*r.N)+(econ.pC*r.PB)+(econ.sC*r.S)).toFixed(2)+'</td></tr></table>';var alerts=[];if(!num("soilN")||!num("soilP1"))alerts.push(["bad","N or P1 is blank."]);if(id("crop").value==="canola"&&!num("soilS"))alerts.push(["bad","Canola needs sulfur."]);if(econ.score<70)alerts.push(["warn","Economic confidence reduced by missing/high cost inputs."]);if(rainfallFactor()<0.85)alerts.push(["warn","Rainfall estimate is lowering yield/economic confidence."]);if(alerts.length===0)alerts.push(["good","No major warnings."]);id("alerts").innerHTML=alerts.map(function(a){return '<div class="notice '+a[0]+'">'+a[1]+'</div>'}).join("");id("audit").textContent='V4.5 audit\\nWeather/rain factor '+wf.toFixed(2)+'\\nRainfall factor '+rainfallFactor().toFixed(2)+'\\nWater score '+waterScore().toFixed(0)+'\\nSoil N '+soilN.toFixed(1)+'\\nUsable N '+usableN.toFixed(1)+'\\nMineralization '+mineral.toFixed(1)+'\\nP used '+soilP.toFixed(1)+'\\nSoil S '+soilS.toFixed(1)+'\\nN $/lb '+(econ.nC?econ.nC.toFixed(2):"missing")+'\\nP $/lb '+(econ.pC?econ.pC.toFixed(2):"missing")+'\\nS $/lb '+(econ.sC?econ.sC.toFixed(2):"missing")+'\\nAgronomic confidence '+conf.score.toFixed(0)+'\\nEconomic confidence '+econ.score.toFixed(0);location.hash="#result"}catch(e){id("buttonTest").innerHTML="ERROR: "+e.message;id("buttonTest").className="notice bad"}}
 cropChanged();
 </script>
 </body>
